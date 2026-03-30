@@ -1,0 +1,21 @@
+Cross-Correlation and Time-Lag Analysis Summary
+====================================================
+Sampling interval: 1min
+
+Dominant lag findings:
+- BTC-ETH: lag=0 bins (0 days 00:00:00), r=0.5647, |r| threshold95=0.0091 -> SIGNIFICANT.
+- BTC-ADA: lag=0 bins (0 days 00:00:00), r=0.4442, |r| threshold95=0.0083 -> SIGNIFICANT.
+- ETH-ADA: lag=0 bins (0 days 00:00:00), r=0.4881, |r| threshold95=0.0081 -> SIGNIFICANT.
+
+Interpretation: At least one pair shows a statistically significant lead/lag under the Monte Carlo red-noise null hypothesis.
+
+Gap robustness (mean lag bins, std, significant fraction):
+- BTC-ETH, gap=10%: mean_lag=0.00, std=0.00, significant_fraction=1.00
+- BTC-ETH, gap=20%: mean_lag=0.00, std=0.00, significant_fraction=1.00
+- BTC-ETH, gap=50%: mean_lag=0.00, std=0.00, significant_fraction=1.00
+- BTC-ADA, gap=10%: mean_lag=0.00, std=0.00, significant_fraction=1.00
+- BTC-ADA, gap=20%: mean_lag=0.00, std=0.00, significant_fraction=1.00
+- BTC-ADA, gap=50%: mean_lag=0.00, std=0.00, significant_fraction=1.00
+- ETH-ADA, gap=10%: mean_lag=0.00, std=0.00, significant_fraction=1.00
+- ETH-ADA, gap=20%: mean_lag=0.00, std=0.00, significant_fraction=1.00
+- ETH-ADA, gap=50%: mean_lag=0.00, std=0.00, significant_fraction=1.00

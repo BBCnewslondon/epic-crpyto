@@ -1,0 +1,131 @@
+{
+  "config": {
+    "data_root": "..",
+    "interval": "1min",
+    "normalization": "returns",
+    "max_lag": 120,
+    "mc_sims": 60,
+    "max_interp_steps": 3,
+    "gap_densities": [
+      0.1,
+      0.2,
+      0.5
+    ],
+    "gap_repeats": 20,
+    "seed": 42
+  },
+  "files": {
+    "BTC": [
+      "..\\Q1\\XBTUSDT.csv",
+      "..\\Q2\\XBTUSDT.csv",
+      "..\\Q3\\TimeAndSales_Q3\\XBTUSDT.csv",
+      "..\\Q4\\TimeAndSales_Q4\\XBTUSDT.csv"
+    ],
+    "ETH": [
+      "..\\Q1\\ETHUSDT.csv",
+      "..\\Q2\\ETHUSDT.csv",
+      "..\\Q3\\TimeAndSales_Q3\\ETHUSDT.csv",
+      "..\\Q4\\TimeAndSales_Q4\\ETHUSDT.csv"
+    ],
+    "ADA": [
+      "..\\Q1\\ADAUSDT.csv",
+      "..\\Q2\\ADAUSDT.csv",
+      "..\\Q3\\TimeAndSales_Q3\\ADAUSDT.csv",
+      "..\\Q4\\TimeAndSales_Q4\\ADAUSDT.csv"
+    ]
+  },
+  "pair_results": [
+    {
+      "pair": "BTC-ETH",
+      "dominant_lag_bins": 0,
+      "dominant_lag_timedelta": "0 days 00:00:00",
+      "dominant_corr": 0.5646847501784672,
+      "sig_global_95": 0.009101378683793501,
+      "is_significant": true
+    },
+    {
+      "pair": "BTC-ADA",
+      "dominant_lag_bins": 0,
+      "dominant_lag_timedelta": "0 days 00:00:00",
+      "dominant_corr": 0.4442137931232885,
+      "sig_global_95": 0.008254906001366002,
+      "is_significant": true
+    },
+    {
+      "pair": "ETH-ADA",
+      "dominant_lag_bins": 0,
+      "dominant_lag_timedelta": "0 days 00:00:00",
+      "dominant_corr": 0.48805097549036236,
+      "sig_global_95": 0.008111818498218718,
+      "is_significant": true
+    }
+  ],
+  "gap_results": {
+    "BTC-ETH": {
+      "density": [
+        0.1,
+        0.2,
+        0.5
+      ],
+      "mean_lag_bins": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "std_lag_bins": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "significant_fraction": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "BTC-ADA": {
+      "density": [
+        0.1,
+        0.2,
+        0.5
+      ],
+      "mean_lag_bins": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "std_lag_bins": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "significant_fraction": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "ETH-ADA": {
+      "density": [
+        0.1,
+        0.2,
+        0.5
+      ],
+      "mean_lag_bins": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "std_lag_bins": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "significant_fraction": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  }
+}

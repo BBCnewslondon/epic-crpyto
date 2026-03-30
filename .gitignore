@@ -1,0 +1,18 @@
+# Local Python environment
+.venv/
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+
+# Large raw market data exports (all quarters and drive dumps)
+Q1/
+Q2/
+Q3/
+Q4/
+drive-download-*/
+
+# If data files appear in other locations
+*.csv
+
+
