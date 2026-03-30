@@ -11,6 +11,10 @@ Q2/
 Q3/
 Q4/
 drive-download-*/
+Q1_Candlestick/
+Q2_Candlestick/
+Q3_Candlestick/
+Q4_Candlestick/
 
 # If data files appear in other locations
 *.csv
