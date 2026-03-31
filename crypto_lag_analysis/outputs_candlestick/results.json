@@ -1,7 +1,9 @@
 {
   "config": {
     "data_root": "..",
+    "candles_timeframe": "1",
     "interval": "1min",
+    "price_field": "close",
     "normalization": "returns",
     "max_lag": 60,
     "mc_sims": 100,
@@ -16,22 +18,34 @@
   },
   "files": {
     "BTC": [
-      "..\\Q1\\XBTUSDT.csv",
-      "..\\Q2\\XBTUSDT.csv",
-      "..\\Q3\\TimeAndSales_Q3\\XBTUSDT.csv",
-      "..\\Q4\\TimeAndSales_Q4\\XBTUSDT.csv"
+      "..\\Q1_Candlestick\\XBTUSD_1.csv",
+      "..\\Q1_Candlestick\\XBTUSDT_1.csv",
+      "..\\Q2_candlestick\\XBTUSD_1.csv",
+      "..\\Q2_candlestick\\XBTUSDT_1.csv",
+      "..\\Q3_candlestick\\XBTUSD_1.csv",
+      "..\\Q3_candlestick\\XBTUSDT_1.csv",
+      "..\\Q4_candlestick\\XBTUSD_1.csv",
+      "..\\Q4_candlestick\\XBTUSDT_1.csv"
     ],
     "ETH": [
-      "..\\Q1\\ETHUSDT.csv",
-      "..\\Q2\\ETHUSDT.csv",
-      "..\\Q3\\TimeAndSales_Q3\\ETHUSDT.csv",
-      "..\\Q4\\TimeAndSales_Q4\\ETHUSDT.csv"
+      "..\\Q1_Candlestick\\ETHUSD_1.csv",
+      "..\\Q1_Candlestick\\ETHUSDT_1.csv",
+      "..\\Q2_candlestick\\ETHUSD_1.csv",
+      "..\\Q2_candlestick\\ETHUSDT_1.csv",
+      "..\\Q3_candlestick\\ETHUSD_1.csv",
+      "..\\Q3_candlestick\\ETHUSDT_1.csv",
+      "..\\Q4_candlestick\\ETHUSD_1.csv",
+      "..\\Q4_candlestick\\ETHUSDT_1.csv"
     ],
     "ADA": [
-      "..\\Q1\\ADAUSDT.csv",
-      "..\\Q2\\ADAUSDT.csv",
-      "..\\Q3\\TimeAndSales_Q3\\ADAUSDT.csv",
-      "..\\Q4\\TimeAndSales_Q4\\ADAUSDT.csv"
+      "..\\Q1_Candlestick\\ADAUSD_1.csv",
+      "..\\Q1_Candlestick\\ADAUSDT_1.csv",
+      "..\\Q2_candlestick\\ADAUSD_1.csv",
+      "..\\Q2_candlestick\\ADAUSDT_1.csv",
+      "..\\Q3_candlestick\\ADAUSD_1.csv",
+      "..\\Q3_candlestick\\ADAUSDT_1.csv",
+      "..\\Q4_candlestick\\ADAUSD_1.csv",
+      "..\\Q4_candlestick\\ADAUSDT_1.csv"
     ]
   },
   "pair_results": [
@@ -39,24 +53,24 @@
       "pair": "BTC-ETH",
       "dominant_lag_bins": 0,
       "dominant_lag_timedelta": "0 days 00:00:00",
-      "dominant_corr": 0.5646847501784672,
-      "sig_global_95": 0.008261548562778092,
+      "dominant_corr": 0.5222147578900805,
+      "sig_global_95": 0.005437065737659421,
       "is_significant": true
     },
     {
       "pair": "BTC-ADA",
       "dominant_lag_bins": 0,
       "dominant_lag_timedelta": "0 days 00:00:00",
-      "dominant_corr": 0.4442137931232885,
-      "sig_global_95": 0.007909827662585543,
+      "dominant_corr": 0.43389412474871114,
+      "sig_global_95": 0.005724973934038205,
       "is_significant": true
     },
     {
       "pair": "ETH-ADA",
       "dominant_lag_bins": 0,
       "dominant_lag_timedelta": "0 days 00:00:00",
-      "dominant_corr": 0.48805097549036236,
-      "sig_global_95": 0.008101446504180666,
+      "dominant_corr": 0.5180837079647366,
+      "sig_global_95": 0.005305001597656798,
       "is_significant": true
     }
   ],
