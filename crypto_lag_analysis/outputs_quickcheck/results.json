@@ -1,9 +1,9 @@
 {
   "config": {
-    "data_root": "..",
+    "data_root": "c:\\Users\\singh\\epic-crpyto",
     "interval": "1min",
     "normalization": "returns",
-    "max_lag": 60,
+    "max_lag": 240,
     "mc_sims": 100,
     "max_interp_steps": 3,
     "gap_densities": [
@@ -11,27 +11,30 @@
       0.2,
       0.5
     ],
-    "gap_repeats": 20,
+    "gap_repeats": 10,
+    "periodic_gap_period": "90min",
+    "periodic_gap_drop": "30min",
+    "periodic_gap_phase": "0min",
     "seed": 42
   },
   "files": {
     "BTC": [
-      "..\\Q1\\XBTUSDT.csv",
-      "..\\Q2\\XBTUSDT.csv",
-      "..\\Q3\\TimeAndSales_Q3\\XBTUSDT.csv",
-      "..\\Q4\\TimeAndSales_Q4\\XBTUSDT.csv"
+      "c:\\Users\\singh\\epic-crpyto\\Q1\\XBTUSDT.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q2\\XBTUSDT.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q3\\TimeAndSales_Q3\\XBTUSDT.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q4\\TimeAndSales_Q4\\XBTUSDT.csv"
     ],
     "ETH": [
-      "..\\Q1\\ETHUSDT.csv",
-      "..\\Q2\\ETHUSDT.csv",
-      "..\\Q3\\TimeAndSales_Q3\\ETHUSDT.csv",
-      "..\\Q4\\TimeAndSales_Q4\\ETHUSDT.csv"
+      "c:\\Users\\singh\\epic-crpyto\\Q1\\ETHUSDT.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q2\\ETHUSDT.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q3\\TimeAndSales_Q3\\ETHUSDT.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q4\\TimeAndSales_Q4\\ETHUSDT.csv"
     ],
     "ADA": [
-      "..\\Q1\\ADAUSDT.csv",
-      "..\\Q2\\ADAUSDT.csv",
-      "..\\Q3\\TimeAndSales_Q3\\ADAUSDT.csv",
-      "..\\Q4\\TimeAndSales_Q4\\ADAUSDT.csv"
+      "c:\\Users\\singh\\epic-crpyto\\Q1\\ADAUSDT.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q2\\ADAUSDT.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q3\\TimeAndSales_Q3\\ADAUSDT.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q4\\TimeAndSales_Q4\\ADAUSDT.csv"
     ]
   },
   "pair_results": [
@@ -40,7 +43,7 @@
       "dominant_lag_bins": 0,
       "dominant_lag_timedelta": "0 days 00:00:00",
       "dominant_corr": 0.5646847501784672,
-      "sig_global_95": 0.008261548562778092,
+      "sig_global_95": 0.009264392003845026,
       "is_significant": true
     },
     {
@@ -48,7 +51,7 @@
       "dominant_lag_bins": 0,
       "dominant_lag_timedelta": "0 days 00:00:00",
       "dominant_corr": 0.4442137931232885,
-      "sig_global_95": 0.007909827662585543,
+      "sig_global_95": 0.008768035675237368,
       "is_significant": true
     },
     {
@@ -56,7 +59,7 @@
       "dominant_lag_bins": 0,
       "dominant_lag_timedelta": "0 days 00:00:00",
       "dominant_corr": 0.48805097549036236,
-      "sig_global_95": 0.008101446504180666,
+      "sig_global_95": 0.009180865740908699,
       "is_significant": true
     }
   ],
@@ -126,6 +129,29 @@
         1.0,
         1.0
       ]
+    }
+  },
+  "periodic_gap_results": {
+    "BTC-ETH": {
+      "periodic_density": 0.3333333333333333,
+      "dominant_lag_bins": 0,
+      "dominant_corr": 0.5613209065400935,
+      "is_significant": true,
+      "valid_points": 231868
+    },
+    "BTC-ADA": {
+      "periodic_density": 0.3333333333333333,
+      "dominant_lag_bins": 0,
+      "dominant_corr": 0.450000074199784,
+      "is_significant": true,
+      "valid_points": 231868
+    },
+    "ETH-ADA": {
+      "periodic_density": 0.3333333333333333,
+      "dominant_lag_bins": 0,
+      "dominant_corr": 0.4736109103236033,
+      "is_significant": true,
+      "valid_points": 231868
     }
   }
 }

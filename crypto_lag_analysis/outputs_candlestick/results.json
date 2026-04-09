@@ -1,11 +1,11 @@
 {
   "config": {
-    "data_root": "..",
+    "data_root": "c:\\Users\\singh\\epic-crpyto",
     "candles_timeframe": "1",
     "interval": "1min",
     "price_field": "close",
     "normalization": "returns",
-    "max_lag": 60,
+    "max_lag": 240,
     "mc_sims": 100,
     "max_interp_steps": 3,
     "gap_densities": [
@@ -13,39 +13,42 @@
       0.2,
       0.5
     ],
-    "gap_repeats": 20,
+    "gap_repeats": 10,
+    "periodic_gap_period": "90min",
+    "periodic_gap_drop": "30min",
+    "periodic_gap_phase": "0min",
     "seed": 42
   },
   "files": {
     "BTC": [
-      "..\\Q1_Candlestick\\XBTUSD_1.csv",
-      "..\\Q1_Candlestick\\XBTUSDT_1.csv",
-      "..\\Q2_candlestick\\XBTUSD_1.csv",
-      "..\\Q2_candlestick\\XBTUSDT_1.csv",
-      "..\\Q3_candlestick\\XBTUSD_1.csv",
-      "..\\Q3_candlestick\\XBTUSDT_1.csv",
-      "..\\Q4_candlestick\\XBTUSD_1.csv",
-      "..\\Q4_candlestick\\XBTUSDT_1.csv"
+      "c:\\Users\\singh\\epic-crpyto\\Q1_Candlestick\\XBTUSD_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q1_Candlestick\\XBTUSDT_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q2_candlestick\\XBTUSD_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q2_candlestick\\XBTUSDT_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q3_candlestick\\XBTUSD_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q3_candlestick\\XBTUSDT_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q4_candlestick\\XBTUSD_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q4_candlestick\\XBTUSDT_1.csv"
     ],
     "ETH": [
-      "..\\Q1_Candlestick\\ETHUSD_1.csv",
-      "..\\Q1_Candlestick\\ETHUSDT_1.csv",
-      "..\\Q2_candlestick\\ETHUSD_1.csv",
-      "..\\Q2_candlestick\\ETHUSDT_1.csv",
-      "..\\Q3_candlestick\\ETHUSD_1.csv",
-      "..\\Q3_candlestick\\ETHUSDT_1.csv",
-      "..\\Q4_candlestick\\ETHUSD_1.csv",
-      "..\\Q4_candlestick\\ETHUSDT_1.csv"
+      "c:\\Users\\singh\\epic-crpyto\\Q1_Candlestick\\ETHUSD_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q1_Candlestick\\ETHUSDT_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q2_candlestick\\ETHUSD_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q2_candlestick\\ETHUSDT_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q3_candlestick\\ETHUSD_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q3_candlestick\\ETHUSDT_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q4_candlestick\\ETHUSD_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q4_candlestick\\ETHUSDT_1.csv"
     ],
     "ADA": [
-      "..\\Q1_Candlestick\\ADAUSD_1.csv",
-      "..\\Q1_Candlestick\\ADAUSDT_1.csv",
-      "..\\Q2_candlestick\\ADAUSD_1.csv",
-      "..\\Q2_candlestick\\ADAUSDT_1.csv",
-      "..\\Q3_candlestick\\ADAUSD_1.csv",
-      "..\\Q3_candlestick\\ADAUSDT_1.csv",
-      "..\\Q4_candlestick\\ADAUSD_1.csv",
-      "..\\Q4_candlestick\\ADAUSDT_1.csv"
+      "c:\\Users\\singh\\epic-crpyto\\Q1_Candlestick\\ADAUSD_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q1_Candlestick\\ADAUSDT_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q2_candlestick\\ADAUSD_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q2_candlestick\\ADAUSDT_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q3_candlestick\\ADAUSD_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q3_candlestick\\ADAUSDT_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q4_candlestick\\ADAUSD_1.csv",
+      "c:\\Users\\singh\\epic-crpyto\\Q4_candlestick\\ADAUSDT_1.csv"
     ]
   },
   "pair_results": [
@@ -54,7 +57,7 @@
       "dominant_lag_bins": 0,
       "dominant_lag_timedelta": "0 days 00:00:00",
       "dominant_corr": 0.5222147578900805,
-      "sig_global_95": 0.005437065737659421,
+      "sig_global_95": 0.0060197024505195896,
       "is_significant": true
     },
     {
@@ -62,7 +65,7 @@
       "dominant_lag_bins": 0,
       "dominant_lag_timedelta": "0 days 00:00:00",
       "dominant_corr": 0.43389412474871114,
-      "sig_global_95": 0.005724973934038205,
+      "sig_global_95": 0.006072532857282901,
       "is_significant": true
     },
     {
@@ -70,7 +73,7 @@
       "dominant_lag_bins": 0,
       "dominant_lag_timedelta": "0 days 00:00:00",
       "dominant_corr": 0.5180837079647366,
-      "sig_global_95": 0.005305001597656798,
+      "sig_global_95": 0.005939608499749334,
       "is_significant": true
     }
   ],
@@ -140,6 +143,29 @@
         1.0,
         1.0
       ]
+    }
+  },
+  "periodic_gap_results": {
+    "BTC-ETH": {
+      "periodic_density": 0.3333333333333333,
+      "dominant_lag_bins": 0,
+      "dominant_corr": 0.5201396893265687,
+      "is_significant": true,
+      "valid_points": 519946
+    },
+    "BTC-ADA": {
+      "periodic_density": 0.3333333333333333,
+      "dominant_lag_bins": 0,
+      "dominant_corr": 0.45857375686311913,
+      "is_significant": true,
+      "valid_points": 519946
+    },
+    "ETH-ADA": {
+      "periodic_density": 0.3333333333333333,
+      "dominant_lag_bins": 0,
+      "dominant_corr": 0.5325857176924044,
+      "is_significant": true,
+      "valid_points": 519946
     }
   }
 }

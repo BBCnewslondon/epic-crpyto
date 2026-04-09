@@ -3,11 +3,13 @@ Candlestick Cross-Correlation and Time-Lag Analysis Summary
 Sampling interval: 1min
 
 Dominant lag findings:
-- BTC-ETH: lag=0 bins (0 days 00:00:00), r=0.5222, |r| threshold95=0.0054 -> SIGNIFICANT.
-- BTC-ADA: lag=0 bins (0 days 00:00:00), r=0.4339, |r| threshold95=0.0057 -> SIGNIFICANT.
-- ETH-ADA: lag=0 bins (0 days 00:00:00), r=0.5181, |r| threshold95=0.0053 -> SIGNIFICANT.
+- BTC-ETH: lag=0 bins (0 days 00:00:00), r=0.5222, |r| threshold95=0.0060 -> SIGNIFICANT.
+- BTC-ADA: lag=0 bins (0 days 00:00:00), r=0.4339, |r| threshold95=0.0061 -> SIGNIFICANT.
+- ETH-ADA: lag=0 bins (0 days 00:00:00), r=0.5181, |r| threshold95=0.0059 -> SIGNIFICANT.
 
 Interpretation: At least one pair shows a statistically significant lead/lag under the Monte Carlo red-noise null hypothesis.
+
+Zero-lag note: all pairs peak at 0 bins. At interval=1min, this means any true lead/lag is likely below one sample step. Resolving sub-bin lags requires higher-frequency data.
 
 Gap robustness (mean lag bins, std, significant fraction):
 - BTC-ETH, gap=10%: mean_lag=0.00, std=0.00, significant_fraction=1.00
@@ -19,3 +21,8 @@ Gap robustness (mean lag bins, std, significant fraction):
 - ETH-ADA, gap=10%: mean_lag=0.00, std=0.00, significant_fraction=1.00
 - ETH-ADA, gap=20%: mean_lag=0.00, std=0.00, significant_fraction=1.00
 - ETH-ADA, gap=50%: mean_lag=0.00, std=0.00, significant_fraction=1.00
+
+Periodic gap stress test (square-wave dropout): period=90min, drop=30min, phase=0min.
+- BTC-ETH, periodic_gap=33%: lag=0 bins, r=0.5201, significant=True
+- BTC-ADA, periodic_gap=33%: lag=0 bins, r=0.4586, significant=True
+- ETH-ADA, periodic_gap=33%: lag=0 bins, r=0.5326, significant=True
