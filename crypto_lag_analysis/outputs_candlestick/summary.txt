@@ -1,28 +1,41 @@
 Candlestick Cross-Correlation and Time-Lag Analysis Summary
-================================================================
-Sampling interval: 1min
+===========================================================
+Sampling interval: 5min
 
 Dominant lag findings:
-- BTC-ETH: lag=0 bins (0 days 00:00:00), r=0.5222, |r| threshold95=0.0060 -> SIGNIFICANT.
-- BTC-ADA: lag=0 bins (0 days 00:00:00), r=0.4339, |r| threshold95=0.0061 -> SIGNIFICANT.
-- ETH-ADA: lag=0 bins (0 days 00:00:00), r=0.5181, |r| threshold95=0.0059 -> SIGNIFICANT.
+- BTC-ETH: lag=0 bins (0 days 00:00:00), r=0.7217, |r| threshold95=0.0235 -> SIGNIFICANT.
+- BTC-ADA: lag=0 bins (0 days 00:00:00), r=0.6411, |r| threshold95=0.0225 -> SIGNIFICANT.
+- ETH-ADA: lag=0 bins (0 days 00:00:00), r=0.6898, |r| threshold95=0.0225 -> SIGNIFICANT.
 
 Interpretation: At least one pair shows a statistically significant lead/lag under the Monte Carlo red-noise null hypothesis.
 
-Zero-lag note: all pairs peak at 0 bins. At interval=1min, this means any true lead/lag is likely below one sample step. Resolving sub-bin lags requires higher-frequency data.
+Zero-lag note: all pairs peak at 0 bins. At interval=5min, this means any true lead/lag is likely below one sample step. Resolving sub-bin lags requires higher-frequency data.
 
-Gap robustness (mean lag bins, std, significant fraction):
-- BTC-ETH, gap=10%: mean_lag=0.00, std=0.00, significant_fraction=1.00
-- BTC-ETH, gap=20%: mean_lag=0.00, std=0.00, significant_fraction=1.00
-- BTC-ETH, gap=50%: mean_lag=0.00, std=0.00, significant_fraction=1.00
-- BTC-ADA, gap=10%: mean_lag=0.00, std=0.00, significant_fraction=1.00
-- BTC-ADA, gap=20%: mean_lag=0.00, std=0.00, significant_fraction=1.00
-- BTC-ADA, gap=50%: mean_lag=0.00, std=0.00, significant_fraction=1.00
-- ETH-ADA, gap=10%: mean_lag=0.00, std=0.00, significant_fraction=1.00
-- ETH-ADA, gap=20%: mean_lag=0.00, std=0.00, significant_fraction=1.00
-- ETH-ADA, gap=50%: mean_lag=0.00, std=0.00, significant_fraction=1.00
+Gap robustness (random vs periodic): peak |r| and lag stability versus missing-data density
+Periodic mask settings: period=90min, phase=0min.
+For each density d, periodic gap length is round(d * period_bins), then clipped to [1, period-1].
+- BTC-ETH, density=10%: random |r|=0.6192±0.0063, periodic |r|=0.7244±0.0067; random lag=0.00±0.00, periodic lag=0.00±0.00
+- BTC-ETH, density=20%: random |r|=0.5250±0.0133, periodic |r|=0.7239±0.0030; random lag=0.00±0.00, periodic lag=0.00±0.00
+- BTC-ETH, density=33%: random |r|=0.4205±0.0090, periodic |r|=0.7221±0.0129; random lag=0.00±0.00, periodic lag=0.00±0.00
+- BTC-ETH, density=50%: random |r|=0.2723±0.0070, periodic |r|=0.7239±0.0154; random lag=0.00±0.00, periodic lag=0.00±0.00
+- BTC-ADA, density=10%: random |r|=0.5590±0.0064, periodic |r|=0.6427±0.0058; random lag=0.00±0.00, periodic lag=0.00±0.00
+- BTC-ADA, density=20%: random |r|=0.4703±0.0077, periodic |r|=0.6416±0.0060; random lag=0.00±0.00, periodic lag=0.00±0.00
+- BTC-ADA, density=33%: random |r|=0.3572±0.0148, periodic |r|=0.6405±0.0165; random lag=0.00±0.00, periodic lag=0.00±0.00
+- BTC-ADA, density=50%: random |r|=0.2517±0.0257, periodic |r|=0.6453±0.0162; random lag=0.00±0.00, periodic lag=0.00±0.00
+- ETH-ADA, density=10%: random |r|=0.5946±0.0079, periodic |r|=0.6919±0.0072; random lag=0.00±0.00, periodic lag=0.00±0.00
+- ETH-ADA, density=20%: random |r|=0.5044±0.0208, periodic |r|=0.6952±0.0111; random lag=0.00±0.00, periodic lag=0.00±0.00
+- ETH-ADA, density=33%: random |r|=0.4043±0.0077, periodic |r|=0.6991±0.0046; random lag=0.00±0.00, periodic lag=0.00±0.00
+- ETH-ADA, density=50%: random |r|=0.2892±0.0250, periodic |r|=0.6983±0.0105; random lag=0.00±0.00, periodic lag=0.00±0.00
 
-Periodic gap stress test (square-wave dropout): period=90min, drop=30min, phase=0min.
-- BTC-ETH, periodic_gap=33%: lag=0 bins, r=0.5201, significant=True
-- BTC-ADA, periodic_gap=33%: lag=0 bins, r=0.4586, significant=True
-- ETH-ADA, periodic_gap=33%: lag=0 bins, r=0.5326, significant=True
+Time-resolved CCF (lag spectrogram) summary:
+- BTC-ETH: windows=4301, ridge lag mean=0.14 bins, ridge lag std=3.03, mean |peak r|=0.6882.
+- BTC-ADA: windows=4301, ridge lag mean=0.11 bins, ridge lag std=4.09, mean |peak r|=0.6364.
+- ETH-ADA: windows=4301, ridge lag mean=-0.09 bins, ridge lag std=3.13, mean |peak r|=0.6748.
+
+Granger causality (directionality proxy) summary:
+- BTC -> ETH: p=9.855e-08, best_lag=5 (SIGNIFICANT at alpha=0.050).
+- BTC -> ADA: p=7.675e-11, best_lag=8 (SIGNIFICANT at alpha=0.050).
+- ETH -> BTC: p=5.219e-15, best_lag=1 (SIGNIFICANT at alpha=0.050).
+- ETH -> ADA: p=4.161e-22, best_lag=8 (SIGNIFICANT at alpha=0.050).
+- ADA -> BTC: p=2.754e-33, best_lag=8 (SIGNIFICANT at alpha=0.050).
+- ADA -> ETH: p=2.834e-40, best_lag=8 (SIGNIFICANT at alpha=0.050).

@@ -4,6 +4,8 @@ This project estimates lead/lag structure between crypto assets using:
 
 - normalized series (returns or z-score)
 - discrete cross-correlation function (CCF)
+- time-resolved rolling CCF (lag spectrogram)
+- directional information-flow proxy via Granger causality
 - Monte Carlo significance testing with phase-randomized surrogates
 - robustness tests under both random and deterministic periodic missing data
 
@@ -49,6 +51,10 @@ Common options:
 - `--periodic-gap-period`: periodic outage cycle length
 - `--periodic-gap-drop`: legacy fixed periodic drop duration (its implied density is auto-included)
 - `--periodic-gap-phase`: periodic outage phase offset
+- `--rolling-ccf-window`: rolling window duration for lag spectrogram (default `24h`)
+- `--rolling-ccf-step`: rolling window step duration (default `30min`)
+- `--granger-maxlag`: max VAR lag order for Granger tests (default `20`)
+- `--granger-alpha`: significance level for directionality inference (default `0.05`)
 
 Trade-script deep-dive option:
 
@@ -65,8 +71,15 @@ Candlestick-specific options:
 - `ccf_with_significance.png`
 - `correlation_vs_gap_density.png`
 - `lag_vs_gap_density.png` (backward-compatible alias of correlation plot)
+- `time_resolved_ccf_heatmap.png`
+- `granger_causality_matrix.png`
 - `summary.txt`
 - `results.json`
+
+`results.json` now also includes:
+
+- `time_resolved_ccf`: rolling-window lag matrix, ridge trajectory, and timestamps per pair
+- `granger_causality`: directed p-value matrix, best lag matrix, significance matrix, and edge list
 
 ### Plot behavior updates
 
@@ -118,6 +131,29 @@ python analyze_crypto_lags.py --data-root .. --interval 1s --assets BTC ACH --pa
 ```
 
 Lower-liquidity assets can widen reaction horizons and expose non-zero lags that are hidden at coarse cadence.
+
+## Advanced Directionality and Regime Analysis
+
+### 1) Time-Resolved CCF (Lag Spectrogram)
+
+Instead of a single global CCF, the analysis computes a rolling CCF over windows (default `24h`) and stores:
+
+- $r_{k,t}$ matrix per pair (lag $k$ vs center time $t$)
+- dominant lag ridge over time
+- corresponding per-window peak correlation
+
+The heatmap reveals transient lag shifts that can be hidden by a single global average.
+
+### 2) Granger Causality (Linear Transfer Entropy Proxy)
+
+For each directed pair $X \to Y$, the pipeline runs `statsmodels` Granger tests over lags up to `--granger-maxlag` and records:
+
+- minimum p-value across tested lags
+- lag at which that minimum occurs
+- significance at `--granger-alpha`
+- intensity proxy $-\log_{10}(p)$ for matrix visualization
+
+Interpretation: if $p_{X\to Y}$ is significant and smaller than $p_{Y\to X}$, evidence supports stronger information flow from $X$ into $Y$ in the linear VAR sense.
 
 ## Data Notes
 

@@ -3,9 +3,11 @@
 
 from __future__ import annotations
 
+import importlib
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -380,6 +382,191 @@ def run_gap_robustness(
     return results
 
 
+def _rolling_window_positions(
+    n_points: int,
+    window_bins: int,
+    step_bins: int,
+) -> List[Tuple[int, int]]:
+    if window_bins <= 0:
+        raise ValueError("window_bins must be positive.")
+    if step_bins <= 0:
+        raise ValueError("step_bins must be positive.")
+    if n_points < window_bins:
+        return []
+
+    out: List[Tuple[int, int]] = []
+    start = 0
+    while start + window_bins <= n_points:
+        end = start + window_bins
+        out.append((start, end))
+        start += step_bins
+    return out
+
+
+def compute_time_resolved_ccf(
+    aligned_df: pd.DataFrame,
+    pairs: Sequence[Tuple[str, str]],
+    max_lag: int,
+    window_bins: int,
+    step_bins: int,
+    interval: str,
+) -> Dict[str, Dict[str, Any]]:
+    windows = _rolling_window_positions(len(aligned_df), window_bins=window_bins, step_bins=step_bins)
+
+    lag_axis = np.arange(-max_lag, max_lag + 1, dtype=int)
+    outputs: Dict[str, Dict[str, Any]] = {}
+
+    for a, b in pairs:
+        pair_name = f"{a}-{b}"
+        matrix = np.full((len(windows), lag_axis.size), np.nan, dtype=float)
+        center_times: List[pd.Timestamp] = []
+        dominant_lags: List[int] = []
+        dominant_corrs: List[float] = []
+
+        x_full = aligned_df[a].to_numpy(dtype=float)
+        y_full = aligned_df[b].to_numpy(dtype=float)
+
+        for i, (start, end) in enumerate(windows):
+            x = x_full[start:end]
+            y = y_full[start:end]
+            lags, ccf_vals = ccf_discrete(x, y, max_lag=max_lag)
+            matrix[i, :] = ccf_vals
+
+            lag_bin, corr = dominant_lag(lags, ccf_vals)
+            dominant_lags.append(int(lag_bin))
+            dominant_corrs.append(float(corr))
+
+            center_idx = start + (window_bins // 2)
+            center_times.append(aligned_df.index[center_idx])
+
+        outputs[pair_name] = {
+            "lags": lag_axis,
+            "center_times": pd.DatetimeIndex(center_times),
+            "ccf_matrix": matrix,
+            "dominant_lag_bins": np.asarray(dominant_lags, dtype=int),
+            "dominant_lag_timedelta": [timedelta_from_lag_bins(v, interval) for v in dominant_lags],
+            "dominant_corr": np.asarray(dominant_corrs, dtype=float),
+            "window_bins": int(window_bins),
+            "step_bins": int(step_bins),
+            "window_duration": str(pd.to_timedelta(interval) * window_bins),
+            "step_duration": str(pd.to_timedelta(interval) * step_bins),
+        }
+
+    return outputs
+
+
+def _granger_pvalue_for_direction(
+    src: np.ndarray,
+    dst: np.ndarray,
+    maxlag: int,
+) -> Tuple[float, int]:
+    if src.size != dst.size:
+        raise ValueError("src and dst must have identical length")
+
+    # statsmodels expects a two-column array [target, exog] and tests whether
+    # lagged exog terms improve target prediction.
+    data = np.column_stack([dst, src])
+    granger_tests = getattr(
+        importlib.import_module("statsmodels.tsa.stattools"),
+        "grangercausalitytests",
+    )
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message="verbose is deprecated since functions should not print results",
+            category=FutureWarning,
+        )
+        tests = granger_tests(data, maxlag=maxlag, verbose=False)
+
+    best_p = float("inf")
+    best_lag = 1
+    for lag, payload in tests.items():
+        pval = float(payload[0]["ssr_ftest"][1])
+        if np.isfinite(pval) and pval < best_p:
+            best_p = pval
+            best_lag = int(lag)
+
+    return best_p, best_lag
+
+
+def compute_granger_causality_matrix(
+    aligned_df: pd.DataFrame,
+    assets: Sequence[str],
+    maxlag: int,
+    alpha: float,
+) -> Dict[str, Any]:
+    if maxlag < 1:
+        raise ValueError("maxlag must be >= 1")
+    if not (0.0 < alpha < 1.0):
+        raise ValueError("alpha must be in (0, 1)")
+
+    labels = [a.upper() for a in assets]
+    n = len(labels)
+    pvals = np.full((n, n), np.nan, dtype=float)
+    best_lags = np.full((n, n), np.nan, dtype=float)
+    significant = np.zeros((n, n), dtype=float)
+    te_proxy = np.full((n, n), np.nan, dtype=float)
+
+    for i, src in enumerate(labels):
+        for j, dst in enumerate(labels):
+            if i == j:
+                continue
+
+            src_vals = aligned_df[src].to_numpy(dtype=float)
+            dst_vals = aligned_df[dst].to_numpy(dtype=float)
+            min_required = max(20, maxlag * 5)
+            if src_vals.size <= min_required:
+                continue
+
+            try:
+                pval, lag = _granger_pvalue_for_direction(src_vals, dst_vals, maxlag=maxlag)
+            except (ValueError, np.linalg.LinAlgError):
+                continue
+
+            pvals[i, j] = pval
+            best_lags[i, j] = float(lag)
+            significant[i, j] = 1.0 if pval < alpha else 0.0
+            te_proxy[i, j] = max(0.0, -np.log10(max(pval, 1e-16)))
+
+    net_flow = np.full((n, n), np.nan, dtype=float)
+    for i in range(n):
+        for j in range(n):
+            if i == j:
+                continue
+            if np.isfinite(te_proxy[i, j]) and np.isfinite(te_proxy[j, i]):
+                net_flow[i, j] = float(te_proxy[i, j] - te_proxy[j, i])
+
+    directed_edges: List[Dict[str, Any]] = []
+    for i, src in enumerate(labels):
+        for j, dst in enumerate(labels):
+            if i == j:
+                continue
+            if not np.isfinite(pvals[i, j]):
+                continue
+            directed_edges.append(
+                {
+                    "source": src,
+                    "target": dst,
+                    "p_value": float(pvals[i, j]),
+                    "best_lag": int(best_lags[i, j]),
+                    "is_significant": bool(significant[i, j] > 0.5),
+                    "te_proxy": float(te_proxy[i, j]),
+                }
+            )
+
+    return {
+        "assets": labels,
+        "alpha": float(alpha),
+        "maxlag": int(maxlag),
+        "p_value_matrix": pvals,
+        "best_lag_matrix": best_lags,
+        "significant_matrix": significant,
+        "te_proxy_matrix": te_proxy,
+        "net_te_proxy_matrix": net_flow,
+        "directed_edges": directed_edges,
+    }
+
+
 def plot_normalized_series(
     df: pd.DataFrame,
     output_path: Path,
@@ -528,6 +715,225 @@ def plot_correlation_vs_gap_density(
     fig.tight_layout()
     fig.savefig(output_path, dpi=150)
     plt.close(fig)
+
+
+def plot_time_resolved_ccf_heatmap(
+    time_ccf_results: Dict[str, Dict[str, Any]],
+    interval: str,
+    output_path: Path,
+    show_ridge: bool = True,
+) -> None:
+    if not time_ccf_results:
+        return
+
+    pairs = list(time_ccf_results.keys())
+    n = len(pairs)
+    fig, axes = plt.subplots(n, 1, figsize=(14, max(4, 3.8 * n)), sharex=True)
+    if n == 1:
+        axes = [axes]
+
+    mesh = None
+    for ax, pair in zip(axes, pairs):
+        payload = time_ccf_results[pair]
+        matrix = np.asarray(payload["ccf_matrix"], dtype=float)
+        lags = np.asarray(payload["lags"], dtype=float)
+        centers = pd.DatetimeIndex(payload["center_times"])
+
+        if matrix.size == 0 or len(centers) == 0:
+            ax.set_title(f"{pair}: no windows available")
+            ax.set_ylabel("Lag bins")
+            ax.grid(alpha=0.25)
+            continue
+
+        time_num = centers.view("int64") / 1e9
+        if len(time_num) == 1:
+            # Expand a single center time into a narrow span to keep pcolormesh happy.
+            step = float(pd.to_timedelta(interval).total_seconds())
+            t_edges = np.array([time_num[0] - step / 2.0, time_num[0] + step / 2.0])
+        else:
+            t_mid = (time_num[:-1] + time_num[1:]) / 2.0
+            first_edge = time_num[0] - (t_mid[0] - time_num[0])
+            last_edge = time_num[-1] + (time_num[-1] - t_mid[-1])
+            t_edges = np.concatenate([[first_edge], t_mid, [last_edge]])
+
+        if len(lags) == 1:
+            lag_edges = np.array([lags[0] - 0.5, lags[0] + 0.5])
+        else:
+            lag_mid = (lags[:-1] + lags[1:]) / 2.0
+            first_lag = lags[0] - (lag_mid[0] - lags[0])
+            last_lag = lags[-1] + (lags[-1] - lag_mid[-1])
+            lag_edges = np.concatenate([[first_lag], lag_mid, [last_lag]])
+
+        mesh = ax.pcolormesh(
+            t_edges,
+            lag_edges,
+            matrix.T,
+            cmap="RdBu_r",
+            shading="auto",
+            vmin=-1.0,
+            vmax=1.0,
+        )
+
+        if show_ridge:
+            ridge = np.asarray(payload["dominant_lag_bins"], dtype=float)
+            ax.plot(time_num, ridge, color="black", linewidth=1.2, alpha=0.85, label="Dominant ridge")
+            ax.legend(loc="upper right", fontsize=8)
+
+        ax.axhline(0.0, color="black", linewidth=0.8, linestyle="--", alpha=0.5)
+        ax.set_ylabel("Lag bins")
+        ax.set_title(
+            f"{pair}: rolling CCF lag spectrogram (window={payload['window_duration']}, "
+            f"step={payload['step_duration']})"
+        )
+        ax.grid(alpha=0.2)
+
+    # Convert matplotlib date-like float axis labels back to readable timestamps.
+    xticks = axes[-1].get_xticks()
+    if xticks.size:
+        xt_labels = [
+            pd.to_datetime(int(v * 1e9), unit="ns", utc=True).strftime("%Y-%m-%d\n%H:%M") for v in xticks
+        ]
+        axes[-1].set_xticks(xticks)
+        axes[-1].set_xticklabels(xt_labels, rotation=0)
+    axes[-1].set_xlabel("Window center time (UTC)")
+
+    if mesh is not None:
+        cbar = fig.colorbar(mesh, ax=axes, shrink=0.96)
+        cbar.set_label("CCF r_k,t")
+    fig.subplots_adjust(left=0.07, right=0.93, top=0.96, bottom=0.09, hspace=0.3)
+    fig.savefig(output_path, dpi=150)
+    plt.close(fig)
+
+
+def plot_granger_matrix(
+    granger_result: Dict[str, Any],
+    output_path: Path,
+) -> None:
+    assets = list(granger_result.get("assets", []))
+    matrix = np.asarray(granger_result.get("te_proxy_matrix", np.empty((0, 0))), dtype=float)
+    if not assets or matrix.size == 0:
+        return
+
+    fig, ax = plt.subplots(figsize=(1.8 + 1.2 * len(assets), 1.4 + 1.2 * len(assets)))
+    masked = np.ma.array(matrix, mask=~np.isfinite(matrix))
+    im = ax.imshow(masked, cmap="YlOrRd", interpolation="nearest")
+
+    ax.set_xticks(np.arange(len(assets)))
+    ax.set_yticks(np.arange(len(assets)))
+    ax.set_xticklabels(assets)
+    ax.set_yticklabels(assets)
+    ax.set_xlabel("Target (predicted asset)")
+    ax.set_ylabel("Source (informational driver)")
+    ax.set_title("Granger Information-Flow Intensity (-log10 p-value)")
+
+    alpha = float(granger_result.get("alpha", 0.05))
+    threshold = -np.log10(alpha)
+    for i in range(len(assets)):
+        for j in range(len(assets)):
+            val = matrix[i, j]
+            if i == j or not np.isfinite(val):
+                continue
+            marker = "*" if val >= threshold else ""
+            ax.text(j, i, f"{val:.2f}{marker}", ha="center", va="center", fontsize=8)
+
+    cbar = fig.colorbar(im, ax=ax, shrink=0.92)
+    cbar.set_label("-log10(p)")
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=150)
+    plt.close(fig)
+
+
+def summarize_time_resolved_ccf(
+    time_ccf_results: Dict[str, Dict[str, Any]],
+) -> str:
+    lines: List[str] = ["Time-resolved CCF (lag spectrogram) summary:"]
+    if not time_ccf_results:
+        lines.append("No rolling windows were available for the configured settings.")
+        return "\n".join(lines)
+
+    for pair, payload in time_ccf_results.items():
+        ridge = np.asarray(payload["dominant_lag_bins"], dtype=float)
+        corr = np.asarray(payload["dominant_corr"], dtype=float)
+        if ridge.size == 0:
+            lines.append(f"- {pair}: no valid windows.")
+            continue
+
+        lines.append(
+            f"- {pair}: windows={ridge.size}, ridge lag mean={np.nanmean(ridge):.2f} bins, "
+            f"ridge lag std={np.nanstd(ridge):.2f}, mean |peak r|={np.nanmean(np.abs(corr)):.4f}."
+        )
+
+    return "\n".join(lines)
+
+
+def summarize_granger(granger_result: Dict[str, Any]) -> str:
+    lines: List[str] = ["Granger causality (directionality proxy) summary:"]
+    assets = list(granger_result.get("assets", []))
+    if not assets:
+        lines.append("No Granger result available.")
+        return "\n".join(lines)
+
+    alpha = float(granger_result.get("alpha", 0.05))
+    pvals = np.asarray(granger_result.get("p_value_matrix", np.empty((0, 0))), dtype=float)
+    lags = np.asarray(granger_result.get("best_lag_matrix", np.empty((0, 0))), dtype=float)
+
+    any_sig = False
+    for i, src in enumerate(assets):
+        for j, dst in enumerate(assets):
+            if i == j or not np.isfinite(pvals[i, j]):
+                continue
+            sig = bool(pvals[i, j] < alpha)
+            if sig:
+                any_sig = True
+            lines.append(
+                f"- {src} -> {dst}: p={pvals[i, j]:.4g}, best_lag={int(lags[i, j])} "
+                f"({'SIGNIFICANT' if sig else 'not significant'} at alpha={alpha:.3f})."
+            )
+
+    if not any_sig:
+        lines.append(
+            "No directed edge reached significance; observed co-movement may be dominated by "
+            "contemporaneous common factors."
+        )
+
+    return "\n".join(lines)
+
+
+def serialize_time_resolved_ccf(
+    time_ccf_results: Dict[str, Dict[str, Any]],
+) -> Dict[str, Dict[str, Any]]:
+    out: Dict[str, Dict[str, Any]] = {}
+    for pair, payload in time_ccf_results.items():
+        centers = pd.DatetimeIndex(payload["center_times"])
+        out[pair] = {
+            "window_bins": int(payload["window_bins"]),
+            "step_bins": int(payload["step_bins"]),
+            "window_duration": str(payload["window_duration"]),
+            "step_duration": str(payload["step_duration"]),
+            "lags": np.asarray(payload["lags"], dtype=int).tolist(),
+            "center_times_utc": [t.isoformat() for t in centers],
+            "dominant_lag_bins": np.asarray(payload["dominant_lag_bins"], dtype=int).tolist(),
+            "dominant_lag_timedelta": list(payload["dominant_lag_timedelta"]),
+            "dominant_corr": np.asarray(payload["dominant_corr"], dtype=float).tolist(),
+            "ccf_matrix": np.asarray(payload["ccf_matrix"], dtype=float).tolist(),
+        }
+    return out
+
+
+def serialize_granger_result(
+    granger_result: Dict[str, Any],
+) -> Dict[str, Any]:
+    return {
+        "assets": list(granger_result.get("assets", [])),
+        "alpha": float(granger_result.get("alpha", 0.05)),
+        "maxlag": int(granger_result.get("maxlag", 1)),
+        "p_value_matrix": np.asarray(granger_result.get("p_value_matrix", np.empty((0, 0))), dtype=float).tolist(),
+        "best_lag_matrix": np.asarray(granger_result.get("best_lag_matrix", np.empty((0, 0))), dtype=float).tolist(),
+        "significant_matrix": np.asarray(granger_result.get("significant_matrix", np.empty((0, 0))), dtype=float).tolist(),
+        "te_proxy_matrix": np.asarray(granger_result.get("te_proxy_matrix", np.empty((0, 0))), dtype=float).tolist(),
+        "net_te_proxy_matrix": np.asarray(granger_result.get("net_te_proxy_matrix", np.empty((0, 0))), dtype=float).tolist(),
+        "directed_edges": list(granger_result.get("directed_edges", [])),
+    }
 
 
 def build_summary_text(

@@ -16,11 +16,19 @@ from core_analysis import (
     align_series,
     analyze_pairs,
     build_summary_text,
+    compute_granger_causality_matrix,
+    compute_time_resolved_ccf,
     normalize_series,
     plot_ccf,
     plot_correlation_vs_gap_density,
+    plot_granger_matrix,
     plot_normalized_series,
+    plot_time_resolved_ccf_heatmap,
     run_gap_robustness,
+    serialize_granger_result,
+    serialize_time_resolved_ccf,
+    summarize_granger,
+    summarize_time_resolved_ccf,
     timedelta_to_bins,
 )
 
@@ -135,6 +143,30 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default="0min",
         help="Phase offset for periodic gaps, e.g. 0min or 10min.",
+    )
+    parser.add_argument(
+        "--rolling-ccf-window",
+        type=str,
+        default="24h",
+        help="Window size for time-resolved CCF, e.g. 6h, 24h.",
+    )
+    parser.add_argument(
+        "--rolling-ccf-step",
+        type=str,
+        default="30min",
+        help="Step size between rolling CCF windows, e.g. 5min, 30min.",
+    )
+    parser.add_argument(
+        "--granger-maxlag",
+        type=int,
+        default=20,
+        help="Maximum lag order for Granger causality tests.",
+    )
+    parser.add_argument(
+        "--granger-alpha",
+        type=float,
+        default=0.05,
+        help="Significance level for Granger causality inference.",
     )
     parser.add_argument(
         "--seed",
@@ -298,6 +330,9 @@ def main() -> None:
     phase_bins = timedelta_to_bins(args.periodic_gap_phase, args.interval, allow_zero=True)
     phase_bins = phase_bins % period_bins
 
+    rolling_window_bins = timedelta_to_bins(args.rolling_ccf_window, args.interval)
+    rolling_step_bins = timedelta_to_bins(args.rolling_ccf_step, args.interval)
+
     gap_densities = sorted(set(float(d) for d in args.gap_densities))
     fixed_periodic_density = float(drop_bins / period_bins)
     if fixed_periodic_density not in gap_densities:
@@ -325,6 +360,21 @@ def main() -> None:
         periodic_phase_bins=phase_bins,
     )
 
+    time_ccf_results = compute_time_resolved_ccf(
+        aligned_df=aligned,
+        pairs=pairs,
+        max_lag=args.max_lag,
+        window_bins=rolling_window_bins,
+        step_bins=rolling_step_bins,
+        interval=args.interval,
+    )
+    granger_result = compute_granger_causality_matrix(
+        aligned_df=aligned,
+        assets=assets,
+        maxlag=args.granger_maxlag,
+        alpha=args.granger_alpha,
+    )
+
     plot_normalized_series(
         aligned,
         args.output_dir / "normalized_series.png",
@@ -340,6 +390,20 @@ def main() -> None:
     plot_correlation_vs_gap_density(gap_results, args.output_dir / "correlation_vs_gap_density.png")
     # Backward-compatible output name.
     plot_correlation_vs_gap_density(gap_results, args.output_dir / "lag_vs_gap_density.png")
+    plot_time_resolved_ccf_heatmap(
+        time_ccf_results=time_ccf_results,
+        interval=args.interval,
+        output_path=args.output_dir / "time_resolved_ccf_heatmap.png",
+    )
+    plot_granger_matrix(
+        granger_result=granger_result,
+        output_path=args.output_dir / "granger_causality_matrix.png",
+    )
+
+    extra_sections: List[str] = [
+        summarize_time_resolved_ccf(time_ccf_results),
+        summarize_granger(granger_result),
+    ]
 
     summary_text = build_summary_text(
         headline="Candlestick Cross-Correlation and Time-Lag Analysis Summary",
@@ -348,6 +412,7 @@ def main() -> None:
         gap_results=gap_results,
         periodic_gap_period=args.periodic_gap_period,
         periodic_gap_phase=args.periodic_gap_phase,
+        extra_sections=extra_sections,
     )
     (args.output_dir / "summary.txt").write_text(summary_text, encoding="utf-8")
 
@@ -371,6 +436,12 @@ def main() -> None:
             "periodic_gap_period": args.periodic_gap_period,
             "periodic_gap_drop": args.periodic_gap_drop,
             "periodic_gap_phase": args.periodic_gap_phase,
+            "rolling_ccf_window": args.rolling_ccf_window,
+            "rolling_ccf_step": args.rolling_ccf_step,
+            "rolling_ccf_window_bins": rolling_window_bins,
+            "rolling_ccf_step_bins": rolling_step_bins,
+            "granger_maxlag": args.granger_maxlag,
+            "granger_alpha": args.granger_alpha,
             "seed": args.seed,
         },
         "files": serializable_files,
@@ -386,6 +457,8 @@ def main() -> None:
             for r in analyses
         ],
         "gap_results": gap_results,
+        "time_resolved_ccf": serialize_time_resolved_ccf(time_ccf_results),
+        "granger_causality": serialize_granger_result(granger_result),
     }
     (args.output_dir / "results.json").write_text(
         json.dumps(serializable, indent=2), encoding="utf-8"
